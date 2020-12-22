@@ -13,15 +13,16 @@ RSpec.describe 'Task', type: :system do
         expect(current_path).to eq project_tasks_path(project)
       end
 
-      xit 'Project詳細からTask一覧ページにアクセスした場合、Taskが表示されること' do
+      it 'Project詳細からTask一覧ページにアクセスした場合、Taskが表示されること' do
         # FIXME: テストが失敗するので修正してください
-        # project = FactoryBot.create(:project)
-        # task = FactoryBot.create(:task, project_id: project.id)
         visit project_path(project)
         click_link 'View Todos'
-        expect(page).to have_content task.title
-        expect(Task.count).to eq 1
-        expect(current_path).to eq project_tasks_path(project)
+        windows = page.driver.browser.window_handles
+        page.driver.browser.switch_to.window(windows.last) do  
+          expect(page).to have_content task.title
+          expect(Task.count).to eq 1
+          expect(current_path).to eq project_tasks_path(project)
+        end
       end
     end
   end
@@ -62,7 +63,7 @@ RSpec.describe 'Task', type: :system do
         fill_in 'Deadline', with: Time.current
         click_button 'Update Task'
         click_link 'Back'
-        expect(find('.task_list')).to have_content(Time.current.strftime('%m/%d'))
+        expect(find('.task_list')).to have_content(Time.current.strftime('%m/%d %H:%M'))
         expect(current_path).to eq project_tasks_path(project)
       end
 
@@ -78,7 +79,7 @@ RSpec.describe 'Task', type: :system do
 
       it '既にステータスが完了のタスクのステータスを変更した場合、Taskの完了日が更新されないこと' do
         # TODO: FactoryBotのtraitを利用してください
-        completion_task = FactoryBot.create(:task, :done_task, project: project)
+        completion_task = FactoryBot.create(:task, :completion_task, project: project)
         visit edit_project_task_path(project, completion_task)
         select 'todo', from: 'Status'
         click_button 'Update Task'
